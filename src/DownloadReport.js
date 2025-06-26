@@ -39,6 +39,7 @@ function exportLogsToCSV(logs) {
     });
   });
 
+  // THE FIX IS HERE: join with "\n" not ","
   const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
   const link = document.createElement("a");
   link.href = csvContent;
