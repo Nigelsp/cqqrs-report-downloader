@@ -3,27 +3,37 @@ import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 function exportLogsToCSV(logs) {
+  // Headers for a "flattened" CSV without comments
   const headers = [
-    "CQQRS Team Member", "CQ",
-    ...Array.from({ length: 8 }, (_, i) => `QSO ${i + 1}`)
+    "Team Member",
+    "Operator Name",
+    "Location",
+    "Band",
+    "Contact Type",
+    "Date",
+    "QSO"
   ];
   const csvRows = [headers.join(",")];
 
   logs.forEach(log => {
-    const qsos = log.qsos || [];
-    for (let i = 0; i < qsos.length; i += 8) {
-      const chunk = qsos.slice(i, i + 8);
-      const row = [
-        log.teamMember,
-        log.cq,
-        ...chunk,
-        ...Array(8 - chunk.length).fill("")
-      ];
-      csvRows.push(row.map(cell => `"${cell}"`).join(","));
-    }
-    if (qsos.length === 0) {
-      csvRows.push([log.teamMember, log.cq, ...Array(8).fill("")].map(cell => `"${cell}"`).join(","));
-    }
+    const operator = log.operatorInfo || {};
+    (log.contacts || []).forEach(contact => {
+      const date = contact.date
+        ? new Date(contact.date).toLocaleString()
+        : "";
+      (contact.callsigns || []).forEach(qso => {
+        const row = [
+          operator.callsign || "",
+          operator.name || "",
+          operator.location || "",
+          contact.band || "",
+          contact.contactType || "",
+          date,
+          qso
+        ];
+        csvRows.push(row.map(cell => `"${cell}"`).join(","));
+      });
+    });
   });
 
   const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
