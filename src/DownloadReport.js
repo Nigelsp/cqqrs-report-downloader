@@ -27,7 +27,9 @@ function exportLogsToCSV(logs) {
   const link = document.createElement("a");
   link.href = csvContent;
   link.download = "cqqrs_log.csv";
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
 }
 
 export default function DownloadReport() {
