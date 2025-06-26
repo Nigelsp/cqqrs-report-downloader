@@ -2,10 +2,19 @@ import React, { useState } from "react";
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 
+function escapeCSV(value) {
+  if (typeof value !== "string") value = String(value ?? "");
+  if (value.includes('"') || value.includes(",") || value.includes("\n")) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
 function exportLogsToCSV(logs) {
   const headers = [
-    "CQQRS Team Member", "CQ",
-    ...Array.from({ length: 8 }, (_, i) => `QSO ${i + 1}`)
+    "CQQRS Team Member", "Operator Name", "Location", "CQ", "Band",
+    ...Array.from({ length: 8 }, (_, i) => `QSO ${i + 1}`),
+    "Comment", "Date"
   ];
   const csvRows = [headers.join(",")];
 
@@ -15,11 +24,16 @@ function exportLogsToCSV(logs) {
       const qsos = contact.callsigns || [];
       const row = [
         operator.callsign || "",
-        `${contact.contactType || ""}${contact.band ? " " + contact.band : ""}`,
+        operator.name || "",
+        operator.location || "",
+        contact.contactType || "",
+        contact.band || "",
         ...qsos.slice(0, 8),
-        ...Array(8 - qsos.length).fill("")
+        ...Array(8 - qsos.length).fill(""),
+        contact.comment || "",
+        contact.date || ""
       ];
-      csvRows.push(row.map(cell => `"${cell}"`).join(","));
+      csvRows.push(row.map(escapeCSV).join(","));
     });
   });
 
