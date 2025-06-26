@@ -3,7 +3,6 @@ import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 function exportLogsToCSV(logs) {
-  // Headers for a "flattened" CSV without comments
   const headers = [
     "Team Member",
     "Operator Name",
@@ -49,17 +48,9 @@ export default function DownloadReport() {
   const handleDownload = async () => {
     setLoading(true);
     const querySnapshot = await getDocs(collection(db, "logs"));
-    // Adapt this mapping to your Firestore document structure
     const logs = [];
     querySnapshot.forEach(doc => {
-      const data = doc.data();
-      (data.contacts || []).forEach(contact => {
-        logs.push({
-          teamMember: data.operatorInfo?.callsign || "",
-          cq: `${contact.contactType} ${contact.band}`,
-          qsos: contact.callsigns || [],
-        });
-      });
+      logs.push(doc.data());
     });
     exportLogsToCSV(logs);
     setLoading(false);
