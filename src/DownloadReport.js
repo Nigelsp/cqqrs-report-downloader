@@ -52,6 +52,7 @@ export default function DownloadReport() {
     querySnapshot.forEach(doc => {
       logs.push(doc.data());
     });
+    console.log("logs:", logs); // <-- Add this line
     exportLogsToCSV(logs);
     setLoading(false);
   };
