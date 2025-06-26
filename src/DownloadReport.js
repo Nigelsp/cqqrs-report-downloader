@@ -3,25 +3,27 @@ import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 function escapeCSV(value) {
-  if (typeof value !== "string") value = String(value ?? "");
-  if (value.includes('"') || value.includes(",") || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
+  if (value === undefined || value === null) return "";
+  const str = String(value);
+  if (str.includes('"') || str.includes(",") || str.includes("\n")) {
+    return `"${str.replace(/"/g, '""')}"`;
   }
-  return value;
+  return str;
 }
 
 function exportLogsToCSV(logs) {
   const headers = [
     "CQQRS Team Member", "Operator Name", "Location", "CQ", "Band",
-    ...Array.from({ length: 8 }, (_, i) => `QSO ${i + 1}`),
+    "QSO 1", "QSO 2", "QSO 3", "QSO 4", "QSO 5", "QSO 6", "QSO 7", "QSO 8",
     "Comment", "Date"
   ];
   const csvRows = [headers.join(",")];
 
   logs.forEach(log => {
     const operator = log.operatorInfo || {};
-    (log.contacts || []).forEach(contact => {
-      const qsos = contact.callsigns || [];
+    const contacts = Array.isArray(log.contacts) ? log.contacts : [];
+    contacts.forEach(contact => {
+      const qsos = Array.isArray(contact.callsigns) ? contact.callsigns : [];
       const row = [
         operator.callsign || "",
         operator.name || "",
