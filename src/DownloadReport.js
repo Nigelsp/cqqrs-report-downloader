@@ -13,34 +13,34 @@ function escapeCSV(value) {
 
 function exportLogsToCSV(logs) {
   const headers = [
-    "CQQRS Team Member", "Operator Name", "Location", "CQ", "Band",
-    "QSO 1", "QSO 2", "QSO 3", "QSO 4", "QSO 5", "QSO 6", "QSO 7", "QSO 8",
-    "Comment", "Date"
+    "CQQRS Team Member", "CQ",
+    "QSO 1", "QSO 2", "QSO 3", "QSO 4", "QSO 5", "QSO 6", "QSO 7", "QSO 8"
   ];
-  const csvRows = [headers.join(",")];
+  const rows = [];
 
   logs.forEach(log => {
     const operator = log.operatorInfo || {};
     const contacts = Array.isArray(log.contacts) ? log.contacts : [];
     contacts.forEach(contact => {
       const qsos = Array.isArray(contact.callsigns) ? contact.callsigns : [];
-      const row = [
+      const cq = [contact.contactType, contact.band].filter(Boolean).join(" ");
+      rows.push([
         operator.callsign || "",
-        operator.name || "",
-        operator.location || "",
-        contact.contactType || "",
-        contact.band || "",
+        cq,
         ...qsos.slice(0, 8),
-        ...Array(8 - qsos.length).fill(""),
-        contact.comment || "",
-        contact.date || ""
-      ];
-      csvRows.push(row.map(escapeCSV).join(","));
+        ...Array(8 - qsos.length).fill("")
+      ]);
     });
   });
 
-  // THE FIX IS HERE: join with "\n" not ","
-  const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+  // Sort rows alphabetically by Team Member (callsign)
+  rows.sort((a, b) => a[0].localeCompare(b[0]));
+
+  const csvRows = [headers.join(",")].concat(
+    rows.map(row => row.map(escapeCSV).join(","))
+  );
+
+  const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\r\n");
   const link = document.createElement("a");
   link.href = csvContent;
   link.download = "cqqrs_log.csv";
