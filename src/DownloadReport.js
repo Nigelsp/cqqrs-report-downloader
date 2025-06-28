@@ -40,6 +40,7 @@ function exportLogsToCSV(logs) {
     rows.map(row => row.map(escapeCSV).join(","))
   );
 
+  console.log("CSV ROWS:", csvRows);
   const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\r\n");
   const link = document.createElement("a");
   link.href = csvContent;
